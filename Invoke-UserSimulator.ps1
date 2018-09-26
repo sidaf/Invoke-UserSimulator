@@ -84,7 +84,7 @@ PS>Invoke-UserSimulator -ConfigXML .\config.xml -All
 			
             [Parameter(Position = 2, Mandatory = $false)]
             [Int]$LinkDepth,
-            
+
             [Parameter(Position = 3, Mandatory = $false)]
             [Int]$MountInterval,
 			
@@ -170,7 +170,7 @@ PS>Invoke-UserSimulator -ConfigXML .\config.xml -All
                 Start-Sleep -s $Interval
             }
         }
-        
+
         # Simulates a user browsing the Internet. Will open pseudo-random URLs
         $InvokeIETraffic = {
             Param(
@@ -217,11 +217,11 @@ PS>Invoke-UserSimulator -ConfigXML .\config.xml -All
                 }
             }
         }
-        
+
         $emailJob = 0
         $ieJob = 0
         $shareJob = 0
-        
+
         If ($Email -or $All) { $emailJob = Start-Job -ScriptBlock $InvokeOpenEmail -ArgumentList @($EmailInterval) -Name 'usersimemail' }
         If ($IE -or $All) { $ieJob = Start-Job -ScriptBlock $InvokeIETraffic -ArgumentList @($PageDuration, $LinkDepth) -Name 'usersimie' }
         If ($Shares -or $All) { $shareJob = Start-Job -ScriptBlock $InvokeMapShares -ArgumentList @($MountInterval) -Name 'usersimshares' }
@@ -242,17 +242,17 @@ PS>Invoke-UserSimulator -ConfigXML .\config.xml -All
             If (($All -or $Shares) -and $shareJob.State -ne 'Running') {
                 $shareJob = Start-Job -ScriptBlock $InvokeMapShares -ArgumentList @($MountInterval) -Name 'usersimshares'
             }
-            
+
             If ((New-TimeSpan -Start $StartTime -End (Get-Date)) -gt $TimeOut) {
                     If ($All -or $Email) {
                         Stop-Job -Job $emailJob
-                        Stop-Process -Name outlook
-                        Stop-Process -Name werfault
+                        Stop-Process -Name outlook -ErrorAction SilentlyContinue
+                        Stop-Process -Name werfault -ErrorAction SilentlyContinue
                     }
                     If ($All -or $IE) {
                         Stop-Job -Job $ieJob
-                        Stop-Process -Name iexplore
-                        Stop-Process -Name werfault
+                        Stop-Process -Name iexplore -ErrorAction SilentlyContinue
+                        Stop-Process -Name werfault -ErrorAction SilentlyContinue
                     }
                     If ($All -or $Shares) {
                         Stop-Job -Job $shareJob
@@ -271,14 +271,14 @@ PS>Invoke-UserSimulator -ConfigXML .\config.xml -All
             $LinkDepth = $XML.usersim.web.linkDepth
             $MountInterval = $XML.usersim.shares.mountInterval
         } Else {
-            $EmailInterval = 300
+            $EmailInterval = 90
             $PageDuration = 20
             $LinkDepth = 10
             $MountInterval = 30
         }
 
         # Make sure variables have values of the right type
-		$myEmailInterval = if ($EmailInterval) {$EmailInterval} else {300}
+		$myEmailInterval = if ($EmailInterval) {$EmailInterval} else {90}
 		$myPageDuration = if ($PageDuration) {$PageDuration} else {20}
 		$myLinkDepth = if ($LinkDepth) {$LinkDepth} else {10}
 		$myMountInterval = if ($MountInterval) {$MountInterval} else {30}
@@ -306,7 +306,7 @@ PS>Invoke-UserSimulator -ConfigXML .\config.xml -All
 		$MountInterval = $XML.usersim.shares.mountInterval
 		$Server = $XML.usersim.serverIP
 		
-		$myEmailInterval = if ($EmailInterval) {$EmailInterval} else {300}
+		$myEmailInterval = if ($EmailInterval) {$EmailInterval} else {90}
 		$myPageDuration = if ($PageDuration) {$PageDuration} else {20}
 		$myLinkDepth = if ($LinkDepth) {$LinkDepth} else {10}
 		$myMountInterval = if ($MountInterval) {$MountInterval} else {30}
